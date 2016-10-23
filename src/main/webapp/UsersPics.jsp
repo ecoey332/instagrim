@@ -14,45 +14,84 @@
         <title>Instagrim</title>
         <link rel="stylesheet" type="text/css" href="/Instagrim/Styles.css" />
     </head>
-    <body>
+    <div class="Container">
         <header>
         
-        <h1>InstaGrim ! </h1>
+        <h1>InstaGrim</h1>
         <h2>Your world in Black and White</h2>
         </header>
         
         <nav>
             <ul>
-                <li class="nav"><a href="/Instagrim/upload.jsp">Upload</a></li>
-                <li class="nav"><a href="/Instagrim/Images/majed">Sample Images</a></li>
+                    <%
+                        LoggedIn lg = (LoggedIn) session.getAttribute("LoggedIn");
+                        if (lg == null) {
+                            System.out.println("No one is logged in");
+                    %>
+                    <li><a href="/Instagrim">Home</a></li>
+                    <li><a href="/Instagrim/register">Register</a></li>
+                    <li><a href="/Instagrim/login">Login</a></li>
+                    <%
+                        }
+                        else if(lg!=null){                 
+                        if (lg.getloggedin()) {
+                    %>
+                <li><a href="/Instagrim">Home</a></li>
+                <li><a href="/Instagrim/profile" style="width:150px;">Your Profile</a></li>
+                <li><a href="/Instagrim/Images/<%=lg.getUsername()%>" style= "width: 150px;">Your Images</a></li>
+                <li><a href="/Instagrim/upload">Upload</a></li>
+                <li><a href="/Instagrim/search">Search</a></li>
+                <li><a href="/Instagrim/logout">Log Out</a><li> 
+                    
+                    <%}
+                            }else{
+                                %>
+                 
+                <%
+                                        
+                            
+                    }%>
             </ul>
         </nav>
- 
-        <article>
-            <h1>Your Pics</h1>
+       
+        <div class="MainBody">
+        
+            <h4>Your Picture's</h4>
+        
         <%
             java.util.LinkedList<Pic> lsPics = (java.util.LinkedList<Pic>) request.getAttribute("Pics");
             if (lsPics == null) {
         %>
-        <p>No Pictures found</p>
+        <p class="colorwhite">No Pictures found</p>
         <%
         } else {
             Iterator<Pic> iterator;
             iterator = lsPics.iterator();
             while (iterator.hasNext()) {
                 Pic p = (Pic) iterator.next();
+                String picID = p.getSUUID();
 
         %>
-        <a href="/Instagrim/Image/<%=p.getSUUID()%>" ><img src="/Instagrim/Thumb/<%=p.getSUUID()%>"></a><br/><%
-
+       
+        <a href="/Instagrim/comments/?picID=<%=picID%>" >
+            <img id="UsersPictures" src="/Instagrim/Image/<%=p.getSUUID()%>" style="width:300px; height:300px;" alt="Users Pictures"></a>
+        <%
             }
             }
         %>
-        </article>
+        
+           </div>
+        
+          
+           
+           <div class="push"></div><br>
+        
         <footer>
             <ul>
-                <li class="footer"><a href="/Instagrim">Home</a></li>
+                
+                <li><a href="/Instagrim">Home</a></li>
             </ul>
         </footer>
-    </body>
+    </div>
+                    
 </html>

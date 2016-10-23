@@ -29,7 +29,14 @@ public final class Keyspaces {
                     + " type  varchar,"
                     + " name  varchar,"
                     + " PRIMARY KEY (picid)"
-                    + ")";
+                    + ");";
+            String CreateCommentTable = "CREATE TABLE if not exists instagrim.Comments ("
+                    + " user varchar, \n"
+                    + " picid uuid,\n "  
+                    + " comment text, \n"
+                    + " comment_added text, \n"
+                    + " PRIMARY KEY (picid, comment_added) \n"
+                    + ") WITH CLUSTERING ORDER BY (comment_added desc);";
             String Createuserpiclist = "CREATE TABLE if not exists instagrim.userpiclist (\n"
                     + "picid uuid,\n"
                     + "user varchar,\n"
@@ -43,11 +50,12 @@ public final class Keyspaces {
                     + "  );";
             String CreateUserProfile = "CREATE TABLE if not exists instagrim.userprofiles (\n"
                     + "      login text PRIMARY KEY,\n"
-                     + "     password text,\n"
+                    + "      password text,\n"
+                    + "      profile_pic_uuid uuid,\n"
                     + "      first_name text,\n"
                     + "      last_name text,\n"
-                    + "      email set<text>,\n"
-                    + "      addresses  map<text, frozen <address>>\n"
+                    + "      email text,\n"
+                    + "      bio text, \n"
                     + "  );";
             Session session = c.connect();
             try {
@@ -85,6 +93,13 @@ public final class Keyspaces {
                 session.execute(cqlQuery);
             } catch (Exception et) {
                 System.out.println("Can't create Address type " + et);
+            }
+            System.out.println("" + CreateCommentTable);
+            try {
+                SimpleStatement cqlQuery = new SimpleStatement(CreateCommentTable);
+                session.execute(cqlQuery);
+            } catch (Exception et) {
+                System.out.println("Can't create Comment table " + et);
             }
             System.out.println("" + CreateUserProfile);
             try {

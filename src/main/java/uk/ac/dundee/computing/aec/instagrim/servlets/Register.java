@@ -23,7 +23,7 @@ import uk.ac.dundee.computing.aec.instagrim.models.User;
  *
  * @author Administrator
  */
-@WebServlet(name = "Register", urlPatterns = {"/Register"})
+@WebServlet(name = "register", urlPatterns = {"/register"})
 public class Register extends HttpServlet {
     Cluster cluster=null;
     public void init(ServletConfig config) throws ServletException {
@@ -47,15 +47,28 @@ public class Register extends HttpServlet {
             throws ServletException, IOException {
         String username=request.getParameter("username");
         String password=request.getParameter("password");
+        String first_name=request.getParameter("first_name");
+        String last_name=request.getParameter("last_name");
+        String email=request.getParameter("email");
         
         User us=new User();
         us.setCluster(cluster);
-        us.RegisterUser(username, password);
+        us.RegisterUser(username, password, first_name, last_name, email);
         
-	response.sendRedirect("/Instagrim");
+        response.sendRedirect("/Instagrim/login");
+        
         
     }
 
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        RequestDispatcher rd=request.getRequestDispatcher("register.jsp");
+	rd.forward(request,response);
+            
+        
+    }
+    
     /**
      * Returns a short description of the servlet.
      *

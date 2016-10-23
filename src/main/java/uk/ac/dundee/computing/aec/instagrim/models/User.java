@@ -13,8 +13,10 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import uk.ac.dundee.computing.aec.instagrim.lib.AeSimpleSHA1;
+import uk.ac.dundee.computing.aec.instagrim.lib.Convertors;
 import uk.ac.dundee.computing.aec.instagrim.stores.Pic;
 
 /**
@@ -27,7 +29,7 @@ public class User {
         
     }
     
-    public boolean RegisterUser(String username, String Password){
+    public boolean RegisterUser(String username, String Password, String first_name, String last_name, String email){
         AeSimpleSHA1 sha1handler=  new AeSimpleSHA1();
         String EncodedPassword=null;
         try {
@@ -37,16 +39,56 @@ public class User {
             return false;
         }
         Session session = cluster.connect("instagrim");
-        PreparedStatement ps = session.prepare("insert into userprofiles (login,password) Values(?,?)");
+        PreparedStatement ps;
+        ps = session.prepare("insert into userprofiles (login,password,first_name,last_name, email) Values(?,?,?,?,?)");
        
         BoundStatement boundStatement = new BoundStatement(ps);
         session.execute( // this is where the query is executed
                 boundStatement.bind( // here you are binding the 'boundStatement'
-                        username,EncodedPassword));
+                        username,EncodedPassword, first_name, last_name, email));
         //We are assuming this always works.  Also a transaction would be good here !
         
         return true;
     }
+    
+    public boolean deleteUser( String originalUsername)
+    {
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps;
+        ps = session.prepare("delete login, password, first_name, last_name, email, profilePicUuid where login=?");
+       
+        BoundStatement boundStatement = new BoundStatement(ps);
+        session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        originalUsername));
+        
+        return true;
+    }
+    
+    public boolean UpdateUser(String username, String Password, String first_name, String last_name, String email)
+    {
+        AeSimpleSHA1 sha1handler=  new AeSimpleSHA1();
+        String EncodedPassword=null;
+        try {
+            EncodedPassword= sha1handler.SHA1(Password);
+        }catch (UnsupportedEncodingException | NoSuchAlgorithmException et){
+            System.out.println("Can't check your password");
+            return false;
+        }
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps;
+        ps = session.prepare("update userprofiles set password=?, first_name=?, last_name=?, email = ? where login=?");
+       
+        BoundStatement boundStatement = new BoundStatement(ps);
+        session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        EncodedPassword, first_name, last_name, email, username));
+        //We are assuming this always works.  Also a transaction would be good here !
+        
+        return true;
+    }
+    
+    
     
     public boolean IsValidUser(String username, String Password){
         AeSimpleSHA1 sha1handler=  new AeSimpleSHA1();
@@ -78,6 +120,149 @@ public class User {
    
     
     return false;  
+    
+    }
+    
+    public String displayUsername(String username){
+        
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps = session.prepare("select login from userprofiles where login =?");
+        ResultSet rs = null;
+        BoundStatement boundStatement = new BoundStatement(ps);
+        rs = session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        username));
+        if (rs.isExhausted()) {
+            System.out.println("No Username returned");
+        } else {
+            for (Row row : rs) {
+               
+                String StoredPass = row.getString("login");
+                if (StoredPass.compareTo(username) == 0)
+                    return StoredPass;
+            }
+        }
+        return null;
+    }
+    
+    public String displayPassword(String username){
+        String StoredPass=null;
+                
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps = session.prepare("select password from userprofiles where login =?");
+        ResultSet rs = null;
+        BoundStatement boundStatement = new BoundStatement(ps);
+        rs = session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        username));
+        if (rs.isExhausted()) {
+            System.out.println("No password returned");
+        } else {
+            for (Row row : rs) {
+               
+                StoredPass = row.getString("password");
+                if (StoredPass.compareTo(username) == 0)
+                    return StoredPass;
+            }
+        }
+        return StoredPass;
+    }
+ 
+    public String displayFirstName(String username){
+        String StoredPass=null;
+                
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps = session.prepare("select first_name from userprofiles where login =?");
+        ResultSet rs = null;
+        BoundStatement boundStatement = new BoundStatement(ps);
+        rs = session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        username));
+        if (rs.isExhausted()) {
+            System.out.println("First Name not returned");
+        } else {
+            for (Row row : rs) {
+               
+                StoredPass = row.getString("first_name");
+                if (StoredPass.compareTo(username) == 0)
+                    return StoredPass;
+            }
+        }
+        return StoredPass;
+    }
+    
+    public String displayLastName(String username){
+        String StoredPass=null;
+                
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps = session.prepare("select last_name from userprofiles where login =?");
+        ResultSet rs = null;
+        BoundStatement boundStatement = new BoundStatement(ps);
+        rs = session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        username));
+        if (rs.isExhausted()) {
+            System.out.println("Last Name not returned");
+        } else {
+            for (Row row : rs) {
+               
+                StoredPass = row.getString("last_name");
+                if (StoredPass.compareTo(username) == 0)
+                    return StoredPass;
+            }
+        }
+        return StoredPass;
+    }
+    
+    
+   
+    public java.util.UUID displayProfilePicUuid(String username){
+        
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps = session.prepare("select profile_pic_uuid from userprofiles where login =?");
+        ResultSet rs = null;
+    
+        BoundStatement boundStatement = new BoundStatement(ps);
+        rs = session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        username));
+        if (rs.isExhausted()) {
+            System.out.println("No Username returned");
+            //return null;
+        } 
+        else 
+        {
+            for (Row row : rs) 
+            {
+            
+            java.util.UUID StoredPass = row.getUUID("profile_pic_uuid");
+            return StoredPass;
+                }
+        }
+        
+       return null;
+    }
+    
+    public String displayEmail(String username){
+        
+        Session session = cluster.connect("instagrim");
+        PreparedStatement ps = session.prepare("select email from userprofiles where login =?");
+        ResultSet rs = null;
+        BoundStatement boundStatement = new BoundStatement(ps);
+        rs = session.execute( // this is where the query is executed
+                boundStatement.bind( // here you are binding the 'boundStatement'
+                        username));
+        if (rs.isExhausted()) {
+            System.out.println("No Username returned");
+        } else {
+            for (Row row : rs) {
+               
+                String StoredPass = row.getString("email");
+             
+                    return StoredPass;
+            }
+        }
+        return null;
     }
        public void setCluster(Cluster cluster) {
         this.cluster = cluster;

@@ -26,8 +26,8 @@ import uk.ac.dundee.computing.aec.instagrim.stores.LoggedIn;
  *
  * @author Administrator
  */
-@WebServlet(name = "login", urlPatterns = {"/login", "/login/*"})
-public class Login extends HttpServlet {
+@WebServlet(name = "search", urlPatterns = {"/search", "/search/*"})
+public class Search extends HttpServlet {
 
     Cluster cluster=null;
 
@@ -49,49 +49,18 @@ public class Login extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        String username=request.getParameter("username");
-        String password=request.getParameter("password");
-        
-        User us=new User();
-        us.setCluster(cluster);
-        boolean isValid=us.IsValidUser(username, password);
-        HttpSession session=request.getSession();
-        System.out.println("Session in servlet "+session);
-        if (isValid){
-            LoggedIn lg= new LoggedIn();
-            
-            username = us.displayUsername(username);
-            password = us.displayPassword(username);
-            String firstname = us.displayFirstName(username);
-            String lastname = us.displayLastName(username);
-            String email = us.displayEmail(username);
-            java.util.UUID profilePicUuid = us.displayProfilePicUuid(username);
-            lg.setLoggedin();
-            lg.setUsername(username);
-            lg.setPassword(password);
-            lg.setFirstName(firstname);
-            lg.setLastName(lastname);
-            lg.setProfilePicUuid(profilePicUuid);
-            lg.setEmail(email);
-            //request.setAttribute("LoggedIn", lg);
-            
-            session.setAttribute("LoggedIn", lg);
-            System.out.println("Session in servlet "+session);
-            response.sendRedirect("/Instagrim/profile");
 
-
-            
-            
-        }else{
-        }
-        
+        String searchString=request.getParameter("search");
+        String newUrl;
+        newUrl = "/Instagrim/Images/"+searchString;
+	response.sendRedirect(newUrl);
+   
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        RequestDispatcher rd=request.getRequestDispatcher("login.jsp");
+        RequestDispatcher rd=request.getRequestDispatcher("search.jsp");
 	    rd.forward(request,response);
     }
    

@@ -52,18 +52,17 @@
         </nav>
  
         <div class="MainBody">
-            <h3>File Upload</h3>
+            <h3>Upload Profile Pic</h3>
+            
             <div class="Upload">
-            <form method="POST" enctype="multipart/form-data" action="Image">
-
-                File to upload: <input type="file" name="upfile">
+            <form method="POST" enctype="multipart/form-data" action="uploadProfilePic">
+                File to upload: <input type="file" name="upfile"><br/>
 
                 <br/>
                 <input type="submit" value="Upload">
             </form>
-               
+                
             </div>
-               
 
         </div>
             

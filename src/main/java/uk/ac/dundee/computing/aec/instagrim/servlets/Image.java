@@ -1,6 +1,10 @@
 package uk.ac.dundee.computing.aec.instagrim.servlets;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.Session;
+import static java.awt.SystemColor.window;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,7 +40,8 @@ import uk.ac.dundee.computing.aec.instagrim.stores.Pic;
     "/Image/*",
     "/Thumb/*",
     "/Images",
-    "/Images/*"
+    "/Images/*",
+    "/UserPics"
 })
 @MultipartConfig
 
@@ -66,9 +71,14 @@ public class Image extends HttpServlet {
     }
 
     /**
+     * @param request
+     * @param response
+     * @throws javax.servlet.ServletException
+     * @throws java.io.IOException
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
      * response)
      */
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // TODO Auto-generated method stub
         String args[] = Convertors.SplitRequestPath(request);
@@ -124,11 +134,14 @@ public class Image extends HttpServlet {
         }
         out.close();
     }
-
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        
+        
+        
         for (Part part : request.getParts()) {
             System.out.println("Part Name " + part.getName());
-
+ 
             String type = part.getContentType();
             String filename = part.getSubmittedFileName();
             
@@ -138,24 +151,33 @@ public class Image extends HttpServlet {
             HttpSession session=request.getSession();
             LoggedIn lg= (LoggedIn)session.getAttribute("LoggedIn");
             String username="majed";
-            if (lg.getlogedin()){
+            
+            if (lg.getloggedin()){
                 username=lg.getUsername();
             }
             if (i > 0) {
+                
                 byte[] b = new byte[i + 1];
                 is.read(b);
                 System.out.println("Length : " + b.length);
                 PicModel tm = new PicModel();
                 tm.setCluster(cluster);
-                tm.insertPic(b, type, filename, username);
-
-                is.close();
+                boolean profilePic = false;
+               
+                tm.insertPic(b,type,filename,username,profilePic);   
             }
-            RequestDispatcher rd = request.getRequestDispatcher("/upload.jsp");
-             rd.forward(request, response);
-        }
-
+            is.close();
+            
+            response.sendRedirect("/Instagrim/upload");
+        }    
+    
     }
+        
+    
+    
+   
+
+    
 
     private void error(String mess, HttpServletResponse response) throws ServletException, IOException {
 

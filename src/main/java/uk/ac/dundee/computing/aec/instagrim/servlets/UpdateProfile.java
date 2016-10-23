@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import uk.ac.dundee.computing.aec.instagrim.lib.CassandraHosts;
-import uk.ac.dundee.computing.aec.instagrim.lib.Convertors;
 import uk.ac.dundee.computing.aec.instagrim.models.User;
 import uk.ac.dundee.computing.aec.instagrim.stores.LoggedIn;
 
@@ -26,16 +25,16 @@ import uk.ac.dundee.computing.aec.instagrim.stores.LoggedIn;
  *
  * @author Administrator
  */
-@WebServlet(name = "login", urlPatterns = {"/login", "/login/*"})
-public class Login extends HttpServlet {
-
+@WebServlet(name = "updateProfile", urlPatterns = {"/updateProfile"})
+public class UpdateProfile extends HttpServlet {
     Cluster cluster=null;
-
-
     public void init(ServletConfig config) throws ServletException {
         // TODO Auto-generated method stub
         cluster = CassandraHosts.getCluster();
     }
+
+
+
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -45,27 +44,31 @@ public class Login extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        String username=request.getParameter("username");
+        //String username=request.getParameter("username");
         String password=request.getParameter("password");
+        String first_name=request.getParameter("first_name");
+        String last_name=request.getParameter("last_name");
+        String email=request.getParameter("email");
+        
+        HttpSession session = request.getSession();
+        LoggedIn lg = (LoggedIn)session.getAttribute("LoggedIn");
+        
         
         User us=new User();
         us.setCluster(cluster);
-        boolean isValid=us.IsValidUser(username, password);
-        HttpSession session=request.getSession();
-        System.out.println("Session in servlet "+session);
-        if (isValid){
-            LoggedIn lg= new LoggedIn();
-            
+        String username = lg.getUsername();
+        //us.deleteUser(originalUsername);
+        us.UpdateUser(username, password, first_name, last_name, email);
+
             username = us.displayUsername(username);
             password = us.displayPassword(username);
             String firstname = us.displayFirstName(username);
             String lastname = us.displayLastName(username);
-            String email = us.displayEmail(username);
+            email = us.displayEmail(username);
             java.util.UUID profilePicUuid = us.displayProfilePicUuid(username);
             lg.setLoggedin();
             lg.setUsername(username);
@@ -78,23 +81,20 @@ public class Login extends HttpServlet {
             
             session.setAttribute("LoggedIn", lg);
             System.out.println("Session in servlet "+session);
-            response.sendRedirect("/Instagrim/profile");
-
-
-            
-            
-        }else{
+       
+        response.sendRedirect("/Instagrim/profile");
         }
         
-    }
+    
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        RequestDispatcher rd=request.getRequestDispatcher("login.jsp");
-	    rd.forward(request,response);
+        RequestDispatcher rd=request.getRequestDispatcher("updateProfile.jsp");
+	rd.forward(request,response);
+            
+        
     }
-   
     
     /**
      * Returns a short description of the servlet.
